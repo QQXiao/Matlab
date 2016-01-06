@@ -1,0 +1,26 @@
+#!/bin/bash
+DATAROOT=/expdata/helenhelen/pic/raw
+MATLAB=matlab2010b
+cd $DATAROOT
+for i in *.gz
+do
+        dirname=`echo $i|sed -e "s/.tar.gz//g"`
+	subid=`echo $dirname|cut -d "_" -f5`
+      	if [ ! -d ../sub$subid ]     
+       	then
+          mkdir -p ../sub$subid/data
+	  mkdir -p ../sub$subid/analysis
+	  tar xf $i
+	  dcm2nii -n -g $dirname
+	 # rm $dirname/*localizer*
+	  for ((serid=8;serid<=9;serid++))
+	  do
+		runid=$[$serid-7]
+		cp $dirname/*242s00${serid}*.nii.gz ../sub$subid/data/ITC_run${runid}.nii.gz
+	  done
+	  mv $dirname/co*.nii.gz ../sub$subid/data/3d.nii.gz
+	  fslorient -swaporient ../sub$subid/data/3d.nii.gz
+	#  rm -rf $dirname
+	 bet ../sub$subid/data/3d.nii.gz ../sub$subid/data/3d_brain.nii.gz -f 0.35 -R
+       fi
+done
